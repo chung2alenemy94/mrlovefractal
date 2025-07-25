@@ -7,509 +7,421 @@
     <style>
         body {
             display: flex;
-            flex-direction: column; /* 요소들을 세로로 정렬 */
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             margin: 0;
-            background-color: #f0f0f0;
-            overflow: hidden;
+            background-color: #282c34; /* 다크 모드 배경 */
+            color: #abb2bf; /* 다크 모드 텍스트 색상 */
+            font-family: Arial, sans-serif;
+            
         }
         h1 {
-            margin-bottom: 20px; /* 캔버스 위에 공간 확보 */
-            color: #333;
+            margin-bottom: 20px;
+            color: #61afef; /* 다크 모드 제목 색상 */
         }
         canvas {
-            border: 1px solid #ccc;
-            background-color: white;
+            border: 1px solid #5c6370;
+            background-color: #21252b; /* 다크 모드 캔버스 배경 */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+        .controls-panel {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #3a404a;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            align-items: center;
+            justify-content: center;
+        }
+        .controls-panel label,
+        .controls-panel select,
+        .controls-panel input[type="range"],
+        .controls-panel input[type="color"],
+        .controls-panel input[type="checkbox"] {
+            color: #abb2bf;
+            background-color: #4b525f;
+            border: 1px solid #5c6370;
+            border-radius: 4px;
+            padding: 5px 8px;
+        }
+        .controls-panel select {
+            padding-right: 25px; /* 드롭다운 화살표 공간 확보 */
+        }
+        .controls-panel input[type="range"] {
+            width: 120px;
+            -webkit-appearance: none;
+            height: 8px;
+            border-radius: 5px;
+            background: #5c6370;
+            outline: none;
+            opacity: 0.7;
+            transition: opacity .2s;
+        }
+        .controls-panel input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #61afef;
+            cursor: pointer;
+        }
+        .controls-panel input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #61afef;
+            cursor: pointer;
+        }
+        .help-button {
+            background-color: #61afef;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-top: 20px;
+            transition: background-color 0.3s ease;
+        }
+        .help-button:hover {
+            background-color: #528bff;
+        }
+        .help-section {
+            background-color: #3a404a;
+            color: #abb2bf;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            max-width: 800px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: none; /* 기본적으로 숨김 */
+        }
+        .help-section h2 {
+            color: #61afef;
+            margin-top: 0;
+        }
+        .help-section p {
+            margin-bottom: 10px;
+        }
+
+        /* 탭 스타일 */
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            background-color: #3a404a;
+            border-radius: 8px;
+            padding: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .tab-button {
+            background-color: #3a404a;
+            color: #abb2bf;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            border-radius: 5px;
+            margin: 0 5px;
+        }
+        .tab-button:hover {
+            background-color: #4b525f;
+        }
+        .tab-button.active {
+            background-color: #61afef;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+            padding: 20px;
+            background-color: #3a404a;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            max-width: 900px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .tab-content h1, .tab-content h2 {
+            color: #61afef;
+            margin-top: 0;
+        }
+        .tab-content ul {
+            list-style-type: disc;
+            margin-left: 20px;
+        }
+        .tab-content li {
+            margin-bottom: 5px;
         }
     </style>
 </head>
 <body>
-    <h1>프랙탈 생성기</h1>
-    <div style="margin-bottom: 10px;">
-        <label for="fractalSelect">프랙탈 선택:</label>
-        <select id="fractalSelect">
-            <option value="tree">프랙탈 트리</option>
-            <option value="sierpinski">시에르핀스키 삼각형</option>
-            <option value="mandelbrot">만델브로트 집합</option>
-        </select>
+    <div class="tabs">
+        <button class="tab-button active" onclick="openTab(event, 'fractalExperience')">프랙탈 체험</button>
+        <button class="tab-button" onclick="openTab(event, 'aboutFractals')">프랙탈 정보</button>
     </div>
-    <div id="fractalControls" style="margin-bottom: 10px;">
-        <!-- 프랙탈별 컨트롤이 여기에 동적으로 추가됩니다 -->
+
+    <div id="fractalExperience" class="tab-content active">
+        <h1>프랙탈 생성기</h1>
+        <p id="fractalDescription" style="text-align: center; max-width: 800px; margin-bottom: 20px; line-height: 1.5;"></p>
+
+        <div class="controls-panel">
+            <div>
+                <label for="fractalSelect">프랙탈 선택:</label>
+                <select id="fractalSelect">
+                    <option value="tree">프랙탈 트리</option>
+                    <option value="sierpinski">시에르핀스키 삼각형</option>
+                    <option value="mandelbrot">만델브로트 집합</option>
+                </select>
+            </div>
+            <div id="fractalControls">
+                <!-- 프랙탈별 컨트롤이 여기에 동적으로 추가됩니다 -->
+            </div>
+            <div>
+                <label for="treeColor">색상:</label>
+                <input type="color" id="treeColor" value="#8B4513">
+            </div>
+        </div>
+
+        <canvas id="fractalCanvas"></canvas>
     </div>
-    <canvas id="fractalCanvas"></canvas>
-    <input type="color" id="treeColor" value="#8B4513" style="margin-top: 10px;">
+
+    <div id="aboutFractals" class="tab-content">
+        <h1>프랙탈이란?</h1>
+        <p>프랙탈(Fractal)은 작은 부분이 전체와 비슷한 기하학적 형태로, 자기 유사성(self-similarity)을 특징으로 합니다. 이는 자연 현상에서 흔히 발견되며, 해안선, 구름, 나무, 혈관 등 다양한 곳에서 프랙탈 구조를 찾아볼 수 있습니다.</p>
+        
+        <h2>프랙탈의 특징</h2>
+        <ul>
+            <li><b>자기 유사성:</b> 어떤 부분을 확대해도 전체와 비슷한 모양이 반복됩니다.</li>
+            <li><b>무한한 복잡성:</b> 아무리 확대해도 새로운 세부 구조가 계속 나타납니다.</li>
+            <li><b>비정수 차원:</b> 일반적인 유클리드 기하학의 차원(1차원 선, 2차원 면, 3차원 입체)과는 다른 비정수 차원을 가집니다.</li>
+        </ul>
+
+        <h2>프랙탈의 활용</h2>
+        <ul>
+            <li><b>컴퓨터 그래픽스:</b> 자연 경관(산, 나무, 구름) 생성, 특수 효과 등에 활용됩니다.</li>
+            <li><b>과학 및 공학:</b> 안테나 설계, 이미지 압축, 의학 영상 분석, 주식 시장 분석 등 다양한 분야에서 응용됩니다.</li>
+            <li><b>예술 및 디자인:</b> 독특하고 아름다운 시각적 패턴을 생성하는 데 사용됩니다.</li>
+        </ul>
+    </div>
 
     <script>
+        // 탭 전환 기능
+        function openTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("tab-button");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+
+        // 초기 로드 시 '프랙탈 체험' 탭 활성화
+        document.addEventListener('DOMContentLoaded', (event) => {
+            document.querySelector('.tab-button').click();
+        });
+
+        // 기존 프랙탈 생성기 스크립트 (여기에 추가될 예정)
+    // 기존 프랙탈 생성기 스크립트 (여기에 추가될 예정)
         const canvas = document.getElementById('fractalCanvas');
         const ctx = canvas.getContext('2d');
-        const treeColorInput = document.getElementById('treeColor');
         const fractalSelect = document.getElementById('fractalSelect');
         const fractalControls = document.getElementById('fractalControls');
+        const fractalDescription = document.getElementById('fractalDescription');
 
-        // 캔버스 크기 설정
+        let currentFractal = 'tree';
+        let treeDepth = 5;
+        let treeAngle = 30;
+        let treeLengthRatio = 0.7;
+        let treeColor = '#8B4513';
+
+        let sierpinskiDepth = 5;
+
+        let mandelbrotIterations = 50;
+        let mandelbrotZoom = 1;
+        let mandelbrotOffsetX = -0.5;
+        let mandelbrotOffsetY = 0;
+
         canvas.width = 800;
         canvas.height = 600;
 
-        // 변환 상태를 저장하는 객체
-        let transform = {
-            x: 0, // 현재 뷰포트의 X 오프셋 (월드 원점 (0,0)의 캔버스 X 좌표)
-            y: 0, // 현재 뷰포트의 Y 오프셋 (월드 원점 (0,0)의 캔버스 Y 좌표)
-            scale: 1 // 현재 확대/축소 비율
-        };
+        function drawFractal() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#21252b';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // 현재 선택된 프랙탈
-        let currentFractal = 'tree';
-        let sierpinskiDepth = 5; // 시에르핀스키 삼각형의 재귀 깊이
-        let useDynamicSierpinskiDepth = true; // 시에르핀스키 삼각형의 깊이를 동적으로 조절할지 여부
-        let mandelbrotMaxIterations = 100; // 만델브로트 집합의 최대 반복 횟수
-        let mandelbrotColorScale = 10; // 만델브로트 집합의 색상 스케일
-        let treeDepth = 10; // 프랙탈 트리의 재귀 깊이
-        let useDynamicTreeDepth = true; // 프랙탈 트리의 깊이를 동적으로 조절할지 여부
-
-        // 초기 뷰 설정: 트리의 밑동 (월드 0,0)이 캔버스 하단 중앙에 오도록
-        transform.x = canvas.width / 2;
-        transform.y = canvas.height;
-
-        // 캔버스 좌표를 월드 좌표로 변환
-        function canvasToWorld(canvasX, canvasY) {
-            return {
-                x: (canvasX - transform.x) / transform.scale,
-                y: (canvasY - transform.y) / transform.scale
-            };
+            switch (currentFractal) {
+                case 'tree':
+                    drawTree(canvas.width / 2, canvas.height, treeLengthRatio * 150, -90, treeDepth);
+                    fractalDescription.textContent = "프랙탈 트리는 자기 유사성을 가진 나무 모양의 프랙탈입니다. 가지가 반복적으로 분기하며 전체 나무의 형태를 이룹니다.";
+                    break;
+                case 'sierpinski':
+                    drawSierpinski(0, canvas.height, canvas.width, sierpinskiDepth);
+                    fractalDescription.textContent = "시에르핀스키 삼각형은 정삼각형에서 중앙의 역삼각형을 계속해서 제거해나가는 방식으로 만들어지는 프랙탈입니다. 무한히 반복되는 구멍이 특징입니다.";
+                    break;
+                case 'mandelbrot':
+                    drawMandelbrot();
+                    fractalDescription.textContent = "만델브로트 집합은 복소평면에서 특정 조건을 만족하는 점들의 집합으로, 매우 복잡하고 아름다운 경계를 가집니다. 확대할수록 새로운 패턴이 드러납니다.";
+                    break;
+            }
         }
 
-        // 월드 좌표를 캔버스 좌표로 변환 (현재 사용되지 않지만 유틸리티 함수로 유지)
-        function worldToCanvas(worldX, worldY) {
-            return {
-                x: worldX * transform.scale + transform.x,
-                y: worldY * transform.scale + transform.y
-            };
-        }
+        function drawTree(startX, startY, length, angle, depth) {
+            if (depth === 0) return;
 
-        // 현재 뷰포트의 월드 좌표를 반환
-        function getViewportWorldCoordinates() {
-            const p1 = canvasToWorld(0, 0);
-            const p2 = canvasToWorld(canvas.width, canvas.height);
-            return {
-                xMin: p1.x,
-                yMin: p1.y,
-                xMax: p2.x,
-                yMax: p2.y
-            };
-        }
-
-        // 삼각형이 뷰포트 내에 있는지 확인 (간단한 AABB 충돌 검사)
-        function isTriangleInViewport(p1, p2, p3, viewport) {
-            const minX = Math.min(p1.x, p2.x, p3.x);
-            const minY = Math.min(p1.y, p2.y, p3.y);
-            const maxX = Math.max(p1.x, p2.x, p3.x);
-            const maxY = Math.max(p1.y, p2.y, p3.y);
-
-            return maxX >= viewport.xMin && minX <= viewport.xMax &&
-                   maxY >= viewport.yMin && minY <= viewport.yMax;
-        }
-
-        // 선분이 뷰포트 내에 있는지 확인 (간단한 AABB 충돌 검사)
-        function isLineInViewport(p1, p2, viewport) {
-            const minX = Math.min(p1.x, p2.x);
-            const minY = Math.min(p1.y, p2.y);
-            const maxX = Math.max(p1.x, p2.x);
-            const maxY = Math.max(p1.y, p2.y);
-
-            return maxX >= viewport.xMin && minX <= viewport.xMax &&
-                   maxY >= viewport.yMin && minY <= viewport.yMax;
-        }
-
-        // 프랙탈 트리 그리기 함수
-        // 이 함수는 월드 좌표계에서 그림을 그립니다.
-        function drawTree(startX, startY, len, angle, branchWidth, currentDepth, maxDepth) {
-            const endX = startX + len * Math.cos(angle);
-            const endY = startY + len * Math.sin(angle);
+            const endX = startX + length * Math.cos(angle * Math.PI / 180);
+            const endY = startY + length * Math.sin(angle * Math.PI / 180);
 
             ctx.beginPath();
             ctx.moveTo(startX, startY);
             ctx.lineTo(endX, endY);
-            ctx.lineWidth = branchWidth;
-            ctx.strokeStyle = treeColorInput.value; // 선택된 색상 사용
+            ctx.strokeStyle = treeColor;
+            ctx.lineWidth = depth / 2 + 0.5;
             ctx.stroke();
 
-            // 재귀 종료 조건 (깊이 또는 픽셀 크기)
-            if (useDynamicTreeDepth) {
-                if (len * transform.scale < 10) return; // 가지의 캔버스 픽셀 길이가 10보다 작아지면 그만 그림
-            } else {
-                if (currentDepth >= maxDepth) return;
-            }
-
-            // 왼쪽 가지
-            drawTree(endX, endY, len * 0.8, angle - Math.PI / 6, branchWidth * 0.8, currentDepth + 1, maxDepth);
-            // 오른쪽 가지
-            drawTree(endX, endY, len * 0.8, angle + Math.PI / 6, branchWidth * 0.8, currentDepth + 1, maxDepth);
+            drawTree(endX, endY, length * treeLengthRatio, angle + treeAngle, depth - 1);
+            drawTree(endX, endY, length * treeLengthRatio, angle - treeAngle, depth - 1);
         }
 
-        // 시에르핀스키 삼각형 그리기 함수
-        function drawSierpinskiTriangle(p1, p2, p3, depth) {
-            // 현재 뷰포트 가져오기
-            const viewport = getViewportWorldCoordinates();
-
-            // 삼각형이 뷰포트 밖에 있으면 그리지 않음
-            if (!isTriangleInViewport(p1, p2, p3, viewport)) {
-                return;
-            }
-
-            // 삼각형의 크기가 너무 작아지면 더 이상 재귀하지 않고 채움
-            // 이 조건은 뷰포트 컬링과 함께 성능 최적화에 기여합니다.
-            const minSize = 5; // 이 값보다 작아지면 더 이상 쪼개지 않고 채움
-            const currentSize = Math.max(
-                Math.abs(p1.x - p2.x),
-                Math.abs(p2.x - p3.x),
-                Math.abs(p3.x - p1.x),
-                Math.abs(p1.y - p2.y),
-                Math.abs(p2.y - p3.y),
-                Math.abs(p3.y - p1.y)
-            ) * transform.scale; // 캔버스 픽셀 크기
-
-            if (depth === 0 || currentSize < minSize) {
+        function drawSierpinski(x, y, size, depth) {
+            if (depth === 0) {
+                ctx.fillStyle = '#61afef';
                 ctx.beginPath();
-                ctx.moveTo(p1.x, p1.y);
-                ctx.lineTo(p2.x, p2.y);
-                ctx.lineTo(p3.x, p3.y);
+                ctx.moveTo(x, y);
+                ctx.lineTo(x + size, y);
+                ctx.lineTo(x + size / 2, y - (Math.sqrt(3) / 2) * size);
                 ctx.closePath();
-                ctx.fillStyle = treeColorInput.value;
                 ctx.fill();
                 return;
             }
 
-            const p12 = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
-            const p23 = { x: (p2.x + p3.x) / 2, y: (p2.y + p3.y) / 2 };
-            const p31 = { x: (p3.x + p1.x) / 2, y: (p1.y + p3.y) / 2 };
-
-            drawSierpinskiTriangle(p1, p12, p31, depth - 1);
-            drawSierpinskiTriangle(p12, p2, p23, depth - 1);
-            drawSierpinskiTriangle(p31, p23, p3, depth - 1);
+            const h = (Math.sqrt(3) / 2) * size;
+            drawSierpinski(x, y, size / 2, depth - 1);
+            drawSierpinski(x + size / 2, y, size / 2, depth - 1);
+            drawSierpinski(x + size / 4, y - h / 2, size / 2, depth - 1);
         }
 
-        // 만델브로트 집합 그리기 함수
-        function drawMandelbrotSet() {
-            const imageData = ctx.createImageData(canvas.width, canvas.height);
-            const pixels = imageData.data;
+        function drawMandelbrot() {
+            const MAX_ITERATIONS = mandelbrotIterations;
+            const ZOOM = mandelbrotZoom;
+            const OFFSET_X = mandelbrotOffsetX;
+            const OFFSET_Y = mandelbrotOffsetY;
 
-            // 만델브로트 집합의 복소 평면 범위
-            // 이 값들은 캔버스 변환(transform.x, transform.y, transform.scale)에 따라 동적으로 계산되어야 합니다.
-            // 현재 캔버스 픽셀 (0,0)이 월드 좌표계의 (transform.x, transform.y)에 매핑되므로,
-            // 캔버스 픽셀 (px, py)에 해당하는 월드 좌표 (wx, wy)는 다음과 같습니다.
-            // wx = (px - transform.x) / transform.scale
-            // wy = (py - transform.y) / transform.scale
+            for (let x = 0; x < canvas.width; x++) {
+                for (let y = 0; y < canvas.height; y++) {
+                    let a = (x / canvas.width) * (3.5 / ZOOM) - (2.5 / ZOOM) + OFFSET_X;
+                    let b = (y / canvas.height) * (2 / ZOOM) - (1 / ZOOM) + OFFSET_Y;
+                    let ca = a;
+                    let cb = b;
+                    let n = 0;
 
-            // 캔버스 좌상단 픽셀 (0,0)의 월드 좌표
-            const worldX_start = (0 - transform.x) / transform.scale;
-            const worldY_start = (0 - transform.y) / transform.scale;
-
-            // 캔버스 우하단 픽셀 (canvas.width, canvas.height)의 월드 좌표
-            const worldX_end = (canvas.width - transform.x) / transform.scale;
-            const worldY_end = (canvas.height - transform.y) / transform.scale;
-
-            const pixelWidth_world = (worldX_end - worldX_start) / canvas.width;
-            const pixelHeight_world = (worldY_end - worldY_start) / canvas.height;
-
-            for (let pixelY = 0; pixelY < canvas.height; pixelY++) {
-                const c_im = worldY_start + pixelY * pixelHeight_world; // 허수 부분
-
-                for (let pixelX = 0; pixelX < canvas.width; pixelX++) {
-                    const c_re = worldX_start + pixelX * pixelWidth_world; // 실수 부분
-
-                    let z_re = 0;
-                    let z_im = 0;
-                    let iterations = 0;
-
-                    while (z_re * z_re + z_im * z_im < 4 && iterations < mandelbrotMaxIterations) {
-                        const z_re_new = z_re * z_re - z_im * z_im + c_re;
-                        z_im = 2 * z_re * z_im + c_im;
-                        z_re = z_re_new;
-                        iterations++;
+                    while (n < MAX_ITERATIONS) {
+                        const aa = a * a;
+                        const bb = b * b;
+                        if (aa + bb > 4) break;
+                        const twoab = 2 * a * b;
+                        a = aa - bb + ca;
+                        b = twoab + cb;
+                        n++;
                     }
 
-                    const pixelIndex = (pixelY * canvas.width + pixelX) * 4;
-
-                    if (iterations === mandelbrotMaxIterations) {
-                        // 집합 내부에 있는 경우 (검은색)
-                        pixels[pixelIndex] = 0;
-                        pixels[pixelIndex + 1] = 0;
-                        pixels[pixelIndex + 2] = 0;
-                        pixels[pixelIndex + 3] = 255; // Alpha
-                    } else {
-                        // 집합 외부에 있는 경우 (색상)
-                        const color = iterations * mandelbrotColorScale;
-                        pixels[pixelIndex] = color % 255;
-                        pixels[pixelIndex + 1] = (color + 50) % 255;
-                        pixels[pixelIndex + 2] = (color + 100) % 255;
-                        pixels[pixelIndex + 3] = 255; // Alpha
-                    }
+                    const color = n === MAX_ITERATIONS ? '#000' : `hsl(${n * 360 / MAX_ITERATIONS}, 100%, 50%)`;
+                    ctx.fillStyle = color;
+                    ctx.fillRect(x, y, 1, 1);
                 }
             }
-            ctx.putImageData(imageData, 0, 0);
         }
 
-        // 프랙탈별 컨트롤 업데이트 함수
-        function updateFractalControls() {
-            fractalControls.innerHTML = ''; // 기존 컨트롤 제거
-            if (currentFractal === 'sierpinski') {
-                const dynamicDepthDiv = document.createElement('div');
-                const dynamicDepthCheckbox = document.createElement('input');
-                dynamicDepthCheckbox.type = 'checkbox';
-                dynamicDepthCheckbox.id = 'dynamicDepth';
-                dynamicDepthCheckbox.checked = useDynamicSierpinskiDepth;
-                dynamicDepthCheckbox.addEventListener('change', (event) => {
-                    useDynamicSierpinskiDepth = event.target.checked;
-                    updateFractalControls(); // 컨트롤 상태 업데이트
-                    redraw();
-                });
-                const dynamicDepthLabel = document.createElement('label');
-                dynamicDepthLabel.htmlFor = 'dynamicDepth';
-                dynamicDepthLabel.textContent = '확대에 따라 깊이 조절';
-                dynamicDepthDiv.appendChild(dynamicDepthCheckbox);
-                dynamicDepthDiv.appendChild(dynamicDepthLabel);
-                fractalControls.appendChild(dynamicDepthDiv);
-
-                const depthControlDiv = document.createElement('div');
-                const label = document.createElement('label');
-                label.textContent = `깊이: ${sierpinskiDepth}`;
-                const slider = document.createElement('input');
-                slider.type = 'range';
-                slider.min = '1';
-                slider.max = '8';
-                slider.value = sierpinskiDepth;
-                slider.disabled = useDynamicSierpinskiDepth; // 동적 깊이 사용 시 비활성화
-                slider.addEventListener('input', (event) => {
-                    sierpinskiDepth = parseInt(event.target.value);
-                    label.textContent = `깊이: ${sierpinskiDepth}`;
-                    redraw();
-                });
-                depthControlDiv.appendChild(label);
-                depthControlDiv.appendChild(slider);
-                fractalControls.appendChild(depthControlDiv);
-            } else if (currentFractal === 'tree') {
-                const dynamicDepthDiv = document.createElement('div');
-                const dynamicDepthCheckbox = document.createElement('input');
-                dynamicDepthCheckbox.type = 'checkbox';
-                dynamicDepthCheckbox.id = 'dynamicTreeDepth';
-                dynamicDepthCheckbox.checked = useDynamicTreeDepth;
-                dynamicDepthCheckbox.addEventListener('change', (event) => {
-                    useDynamicTreeDepth = event.target.checked;
-                    updateFractalControls(); // 컨트롤 상태 업데이트
-                    redraw();
-                });
-                const dynamicDepthLabel = document.createElement('label');
-                dynamicDepthLabel.htmlFor = 'dynamicTreeDepth';
-                dynamicDepthLabel.textContent = '확대에 따라 깊이 조절';
-                dynamicDepthDiv.appendChild(dynamicDepthCheckbox);
-                dynamicDepthDiv.appendChild(dynamicDepthLabel);
-                fractalControls.appendChild(dynamicDepthDiv);
-
-                const depthControlDiv = document.createElement('div');
-                const label = document.createElement('label');
-                label.textContent = `깊이: ${treeDepth}`;
-                const slider = document.createElement('input');
-                slider.type = 'range';
-                slider.min = '1';
-                slider.max = '15'; // 트리의 최대 깊이 설정
-                slider.value = treeDepth;
-                slider.disabled = useDynamicTreeDepth; // 동적 깊이 사용 시 비활성화
-                slider.addEventListener('input', (event) => {
-                    treeDepth = parseInt(event.target.value);
-                    label.textContent = `깊이: ${treeDepth}`;
-                    redraw();
-                });
-                depthControlDiv.appendChild(label);
-                depthControlDiv.appendChild(slider);
-                fractalControls.appendChild(depthControlDiv);
-            } else if (currentFractal === 'mandelbrot') {
-                const iterationsLabel = document.createElement('label');
-                iterationsLabel.textContent = `최대 반복: ${mandelbrotMaxIterations}`;
-                const iterationsSlider = document.createElement('input');
-                iterationsSlider.type = 'range';
-                iterationsSlider.min = '50';
-                iterationsSlider.max = '500';
-                iterationsSlider.step = '10';
-                iterationsSlider.value = mandelbrotMaxIterations;
-                iterationsSlider.addEventListener('input', (event) => {
-                    mandelbrotMaxIterations = parseInt(event.target.value);
-                    iterationsLabel.textContent = `최대 반복: ${mandelbrotMaxIterations}`;
-                    redraw();
-                });
-                fractalControls.appendChild(iterationsLabel);
-                fractalControls.appendChild(iterationsSlider);
-
-                const colorScaleLabel = document.createElement('label');
-                colorScaleLabel.textContent = `색상 스케일: ${mandelbrotColorScale}`;
-                const colorScaleSlider = document.createElement('input');
-                colorScaleSlider.type = 'range';
-                colorScaleSlider.min = '1';
-                colorScaleSlider.max = '50';
-                colorScaleSlider.value = mandelbrotColorScale;
-                colorScaleSlider.addEventListener('input', (event) => {
-                    mandelbrotColorScale = parseInt(event.target.value);
-                    colorScaleLabel.textContent = `색상 스케일: ${mandelbrotColorScale}`;
-                    redraw();
-                });
-                fractalControls.appendChild(colorScaleLabel);
-                fractalControls.appendChild(colorScaleSlider);
+        function updateControls() {
+            fractalControls.innerHTML = '';
+            const treeColorControl = document.getElementById('treeColor');
+            if (treeColorControl) {
+                treeColor = treeColorControl.value;
             }
+
+            switch (currentFractal) {
+                case 'tree':
+                    fractalControls.innerHTML = `
+                        <div>
+                            <label for="treeDepth">깊이:</label>
+                            <input type="range" id="treeDepth" min="1" max="10" value="${treeDepth}">
+                        </div>
+                        <div>
+                            <label for="treeAngle">각도:</label>
+                            <input type="range" id="treeAngle" min="0" max="90" value="${treeAngle}">
+                        </div>
+                        <div>
+                            <label for="treeLengthRatio">길이 비율:</label>
+                            <input type="range" id="treeLengthRatio" min="0.1" max="0.9" step="0.05" value="${treeLengthRatio}">
+                        </div>
+                    `;
+                    document.getElementById('treeDepth').addEventListener('input', (e) => { treeDepth = parseInt(e.target.value); drawFractal(); });
+                    document.getElementById('treeAngle').addEventListener('input', (e) => { treeAngle = parseInt(e.target.value); drawFractal(); });
+                    document.getElementById('treeLengthRatio').addEventListener('input', (e) => { treeLengthRatio = parseFloat(e.target.value); drawFractal(); });
+                    break;
+                case 'sierpinski':
+                    fractalControls.innerHTML = `
+                        <div>
+                            <label for="sierpinskiDepth">깊이:</label>
+                            <input type="range" id="sierpinskiDepth" min="1" max="8" value="${sierpinskiDepth}">
+                        </div>
+                    `;
+                    document.getElementById('sierpinskiDepth').addEventListener('input', (e) => { sierpinskiDepth = parseInt(e.target.value); drawFractal(); });
+                    break;
+                case 'mandelbrot':
+                    fractalControls.innerHTML = `
+                        <div>
+                            <label for="mandelbrotIterations">반복 횟수:</label>
+                            <input type="range" id="mandelbrotIterations" min="10" max="200" value="${mandelbrotIterations}">
+                        </div>
+                        <div>
+                            <label for="mandelbrotZoom">확대:</label>
+                            <input type="range" id="mandelbrotZoom" min="0.1" max="10" step="0.1" value="${mandelbrotZoom}">
+                        </div>
+                        <div>
+                            <label for="mandelbrotOffsetX">X 오프셋:</label>
+                            <input type="range" id="mandelbrotOffsetX" min="-2" max="2" step="0.01" value="${mandelbrotOffsetX}">
+                        </div>
+                        <div>
+                            <label for="mandelbrotOffsetY">Y 오프셋:</label>
+                            <input type="range" id="mandelbrotOffsetY" min="-1.5" max="1.5" step="0.01" value="${mandelbrotOffsetY}">
+                        </div>
+                    `;
+                    document.getElementById('mandelbrotIterations').addEventListener('input', (e) => { mandelbrotIterations = parseInt(e.target.value); drawFractal(); });
+                    document.getElementById('mandelbrotZoom').addEventListener('input', (e) => { mandelbrotZoom = parseFloat(e.target.value); drawFractal(); });
+                    document.getElementById('mandelbrotOffsetX').addEventListener('input', (e) => { mandelbrotOffsetX = parseFloat(e.target.value); drawFractal(); });
+                    document.getElementById('mandelbrotOffsetY').addEventListener('input', (e) => { mandelbrotOffsetY = parseFloat(e.target.value); drawFractal(); });
+                    break;
+            }
+            drawFractal();
         }
 
-        // 캔버스 다시 그리기 함수
-        function redraw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height); // 캔버스 지우기
-            ctx.save(); // 현재 캔버스 상태 저장
+        fractalSelect.addEventListener('change', (e) => {
+            currentFractal = e.target.value;
+            updateControls();
+        });
 
-            // 변환 적용
-            ctx.setTransform(transform.scale, 0, 0, transform.scale, transform.x, transform.y);
-
-            // 선택된 프랙탈 그리기
+        document.getElementById('treeColor').addEventListener('input', (e) => {
+            treeColor = e.target.value;
             if (currentFractal === 'tree') {
-                let actualDepth = treeDepth;
-                if (useDynamicTreeDepth) {
-                    // 확대 레벨에 따라 깊이 동적 조절
-                    // 트리의 초기 길이 120을 기준으로 계산
-                    actualDepth = Math.max(1, Math.floor(Math.log2(transform.scale * 120 / 10))); // 10은 최소 가지 길이
-                }
-                drawTree(0, 0, 120, -Math.PI / 2, 10, 0, actualDepth);
-            } else if (currentFractal === 'sierpinski') {
-                const size = Math.min(canvas.width, canvas.height) * 0.8;
-                const h = size * Math.sqrt(3) / 2;
-                const p1 = { x: -size / 2, y: h / 2 };
-                const p2 = { x: size / 2, y: h / 2 };
-                const p3 = { x: 0, y: -h / 2 };
-
-                let actualDepth = sierpinskiDepth;
-                if (useDynamicSierpinskiDepth) {
-                    // 확대 레벨에 따라 깊이 동적 조절
-                    // 캔버스 픽셀당 월드 좌표 크기를 기반으로 깊이 계산
-                    // 100은 임의의 기준 픽셀 크기이며, 이보다 작아지면 더 깊이 그리지 않음
-                    actualDepth = Math.max(1, Math.floor(Math.log2(transform.scale * size / 10))); // 최대 깊이 제한 제거
-                }
-                drawSierpinskiTriangle(p1, p2, p3, actualDepth);
-            } else if (currentFractal === 'mandelbrot') {
-                // 만델브로트 집합은 픽셀 단위로 그려지므로, 캔버스 변환을 초기화하고 직접 픽셀을 그립니다.
-                // 확대/축소 및 이동은 drawMandelbrotSet 내부에서 처리됩니다.
-                // ctx.setTransform(1, 0, 0, 1, 0, 0); // 변환 초기화 제거
-                drawMandelbrotSet();
-            }
-
-            ctx.restore(); // 이전 캔버스 상태 복원
-        }
-
-        // 초기 그리기
-        updateFractalControls(); // 초기 컨트롤 설정
-        redraw();
-
-        // 프랙탈 선택 변경 이벤트 리스너
-        fractalSelect.addEventListener('change', (event) => {
-            currentFractal = event.target.value;
-            // 프랙탈 변경 시 뷰 초기화 (선택 사항)
-            transform.scale = 1;
-            if (currentFractal === 'tree') {
-                transform.x = canvas.width / 2;
-                transform.y = canvas.height;
-            } else if (currentFractal === 'sierpinski') {
-                transform.x = canvas.width / 2;
-                transform.y = canvas.height / 2; // 시에르핀스키는 중앙에
-            } else if (currentFractal === 'mandelbrot') {
-                // 만델브로트 집합의 초기 뷰포트 설정
-                transform.x = canvas.width / 2 + 0.75 * canvas.width; // 만델브로트 중앙이 캔버스 중앙에 오도록
-                transform.y = canvas.height / 2;
-                transform.scale = Math.min(canvas.width / 3.5, canvas.height / 3); // 적절한 초기 스케일
-            }
-            updateFractalControls(); // 컨트롤 업데이트
-            redraw();
-        });
-
-        // 마우스 드래그 관련 변수
-        let isDragging = false;
-        let lastMouseX_canvas = 0; // 캔버스 좌표
-        let lastMouseY_canvas = 0; // 캔버스 좌표
-
-        // 마우스 휠 이벤트 리스너 (확대/축소)
-        canvas.addEventListener('wheel', (event) => {
-            event.preventDefault(); // 스크롤 방지
-
-            const scaleAmount = 1.1; // 확대/축소 비율
-            const mouseX_canvas = event.clientX - canvas.getBoundingClientRect().left;
-            const mouseY_canvas = event.clientY - canvas.getBoundingClientRect().top;
-
-            // 마우스 위치의 월드 좌표 계산
-            const worldPos = canvasToWorld(mouseX_canvas, mouseY_canvas);
-
-            let newScale;
-            if (event.deltaY < 0) { // 휠 위로 (확대)
-                newScale = transform.scale * scaleAmount;
-            } else { // 휠 아래로 (축소)
-                newScale = transform.scale / scaleAmount;
-            }
-
-            // 새로운 변환 계산하여 마우스 위치 고정
-            transform.scale = newScale;
-            transform.x = mouseX_canvas - worldPos.x * transform.scale;
-            transform.y = mouseY_canvas - worldPos.y * transform.scale;
-
-            redraw();
-        });
-
-        // 마우스 다운 이벤트 리스너 (드래그 시작)
-        canvas.addEventListener('mousedown', (event) => {
-            if (event.button === 0) { // 왼쪽 마우스 버튼만
-                isDragging = true;
-                lastMouseX_canvas = event.clientX - canvas.getBoundingClientRect().left; // 캔버스 기준 X 좌표
-                lastMouseY_canvas = event.clientY - canvas.getBoundingClientRect().top;  // 캔버스 기준 Y 좌표
-                event.preventDefault(); // 브라우저의 기본 드래그 동작 방지
+                drawFractal();
             }
         });
 
-        // 마우스 이동 이벤트 리스너 (드래그 중)
-        canvas.addEventListener('mousemove', (event) => {
-            if (!isDragging) return;
+        updateControls();
 
-            // 마우스 왼쪽 버튼이 눌려있지 않으면 드래그 종료
-            if (!(event.buttons & 1)) { 
-                isDragging = false;
-                return;
-            }
-
-            event.preventDefault(); // 브라우저의 기본 드래그 동작 방지
-
-            const currentMouseX_canvas = event.clientX - canvas.getBoundingClientRect().left; // 캔버스 기준 X 좌표
-            const currentMouseY_canvas = event.clientY - canvas.getBoundingClientRect().top;  // 캔버스 기준 Y 좌표
-
-            // 캔버스 좌표계에서의 이동량 계산
-            const deltaX_canvas = currentMouseX_canvas - lastMouseX_canvas;
-            const deltaY_canvas = currentMouseY_canvas - lastMouseY_canvas;
-
-            // 변환 오프셋 업데이트
-            transform.x += deltaX_canvas;
-            transform.y += deltaY_canvas;
-
-            // 다음 프레임을 위해 현재 마우스 위치 업데이트
-            lastMouseX_canvas = currentMouseX_canvas;
-            lastMouseY_canvas = currentMouseY_canvas;
-
-            redraw();
-        });
-
-        // 마우스 업 이벤트 리스너 (드래그 종료)
-        canvas.addEventListener('mouseup', () => {
-            isDragging = false;
-        });
-
-        // 마우스가 캔버스 밖으로 나갔을 때 드래그 종료 (전역 리스너 추가)
-        document.addEventListener('mouseup', () => {
-            if (isDragging) { // Only log if it was actually dragging
-                isDragging = false;
-            }
-        });
-
-        // 색상 입력 변경 이벤트 리스너
-        treeColorInput.addEventListener('input', redraw);
     </script>
 </body>
 </html>
