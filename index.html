@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>시에르핀스키 삼각형</title>
+
+<style>
+body{
+    background:#282c34;
+    color:white;
+    font-family:Arial,sans-serif;
+    text-align:center;
+    margin:0;
+    padding:20px;
+}
+
+.controls{
+    margin:20px;
+}
+
+canvas{
+    background:#21252b;
+    border:1px solid #555;
+}
+</style>
+</head>
+<body>
+
+<h1>시에르핀스키 삼각형</h1>
+
+<div class="controls">
+
+<label>
+깊이:
+<input type="range" id="depth" min="1" max="8" value="5">
+<span id="depthValue">5</span>
+</label>
+
+<br><br>
+
+<label>
+확대:
+<input type="range" id="zoom" min="0.5" max="3" step="0.1" value="1">
+<span id="zoomValue">1</span>
+</label>
+
+</div>
+
+<canvas id="canvas" width="800" height="600"></canvas>
+
+<script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+let depth = 5;
+let zoom = 1;
+
+function drawSierpinski(x, y, size, depth){
+
+    if(depth === 0){
+        ctx.fillStyle = "#61afef";
+
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + size, y);
+        ctx.lineTo(
+            x + size/2,
+            y - size*Math.sqrt(3)/2
+        );
+        ctx.closePath();
+        ctx.fill();
+
+        return;
+    }
+
+    const h = size*Math.sqrt(3)/2;
+
+    drawSierpinski(x, y, size/2, depth-1);
+    drawSierpinski(x + size/2, y, size/2, depth-1);
+    drawSierpinski(x + size/4, y - h/2, size/2, depth-1);
+}
+
+function drawFractal(){
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    const size =
+        Math.min(canvas.width,canvas.height)
+        * 0.9
+        * zoom;
+
+    const h = size*Math.sqrt(3)/2;
+
+    drawSierpinski(
+        canvas.width/2 - size/2,
+        canvas.height/2 + h/3,
+        size,
+        depth
+    );
+}
+
+document
+.getElementById("depth")
+.addEventListener("input",e=>{
+    depth = Number(e.target.value);
+    document.getElementById("depthValue").textContent = depth;
+    drawFractal();
+});
+
+document
+.getElementById("zoom")
+.addEventListener("input",e=>{
+    zoom = Number(e.target.value);
+    document.getElementById("zoomValue").textContent = zoom;
+    drawFractal();
+});
+
+drawFractal();
+</script>
+
+</body>
+</html>
