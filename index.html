@@ -102,10 +102,18 @@ canvas{
 
 <!-- 삼각형 개수 탭 -->
 <div id="count" class="tab-content">
-    <div class="placeholder">
-        📊 삼각형 개수 변화 탭<br><br>
-        (다음 단계에서 추가 예정)
-    </div>
+
+    <h2>깊이에 따른 삼각형 개수</h2>
+
+    <p>
+        현재 깊이:
+        <span id="currentDepthCount">5</span>
+    </p>
+
+    <canvas id="countCanvas"
+            width="800"
+            height="400"></canvas>
+
 </div>
 
 <!-- 넓이 변화 탭 -->
@@ -194,8 +202,13 @@ document
 .getElementById("depth")
 .addEventListener("input",e=>{
     depth = Number(e.target.value);
-    document.getElementById("depthValue").textContent = depth;
+
+    document.getElementById(
+        "depthValue"
+    ).textContent = depth;
+
     drawFractal();
+    drawCountGraph();
 });
 
 document
@@ -207,7 +220,105 @@ document
 });
 
 drawFractal();
+const countCanvas =
+    document.getElementById("countCanvas");
 
+const countCtx =
+    countCanvas.getContext("2d");
+
+function drawCountGraph(){
+
+    countCtx.clearRect(
+        0,
+        0,
+        countCanvas.width,
+        countCanvas.height
+    );
+
+    const values = [];
+
+    for(let d=0; d<=8; d++){
+        values.push(Math.pow(3,d));
+    }
+
+    const maxValue =
+        values[values.length-1];
+
+    const margin = 60;
+
+    countCtx.strokeStyle = "white";
+    countCtx.lineWidth = 2;
+
+    countCtx.beginPath();
+    countCtx.moveTo(
+        margin,
+        countCanvas.height-margin
+    );
+
+    countCtx.lineTo(
+        countCanvas.width-margin,
+        countCanvas.height-margin
+    );
+
+    countCtx.moveTo(
+        margin,
+        margin
+    );
+
+    countCtx.lineTo(
+        margin,
+        countCanvas.height-margin
+    );
+
+    countCtx.stroke();
+
+    for(let i=0;i<values.length;i++){
+
+        const x =
+            margin +
+            i *
+            ((countCanvas.width-margin*2)/8);
+
+        const y =
+            countCanvas.height-margin -
+            (values[i]/maxValue) *
+            (countCanvas.height-margin*2);
+
+        countCtx.fillStyle =
+            (i===depth)
+            ? "#ffcc00"
+            : "#61afef";
+
+        countCtx.beginPath();
+        countCtx.arc(
+            x,
+            y,
+            6,
+            0,
+            Math.PI*2
+        );
+
+        countCtx.fill();
+
+        countCtx.fillStyle = "white";
+
+        countCtx.fillText(
+            i,
+            x-3,
+            countCanvas.height-35
+        );
+
+        countCtx.fillText(
+            values[i],
+            x-15,
+            y-10
+        );
+    }
+
+    document.getElementById(
+        "currentDepthCount"
+    ).textContent = depth;
+}
 </script>
 
 </body>
